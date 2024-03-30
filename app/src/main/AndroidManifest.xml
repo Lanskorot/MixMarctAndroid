@@ -26,7 +26,7 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
-            android:name=".show_info"
+            android:name=".ShowInfo"
             android:exported="false" />
         <activity
             android:name=".MainActivity"

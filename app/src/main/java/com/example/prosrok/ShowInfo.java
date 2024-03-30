@@ -16,6 +16,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -31,36 +32,15 @@ import java.util.Date;
 import java.util.List;
 import android.util.Log;
 
-public class show_info extends Activity {
+import androidx.annotation.NonNull;
+
+public class ShowInfo extends Activity {
     private ListView listView;
     private ArrayAdapter<String> adapter;
     private List<Pair<Date, DataModel>> listData;
     private FirebaseFirestore db;
     private String selectedDatabase;
-    private static final String TAG = "show_info";
-
-    private void showOptionsDialog(final int position) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Выберите действие");
-        builder.setItems(new CharSequence[]{"Удалить", "Редактировать"}, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                switch (which) {
-                    case 0:
-                        // Опция "Удалить" выбрана, выполните соответствующее действие здесь
-
-                        break;
-                    case 1:
-                        // Опция "Редактировать" выбрана, выполните соответствующее действие здесь
-                        break;
-                }
-            }
-        });
-        builder.create().show();
-    }
-
-
-
+    private static final String TAG = "ShowInfo";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -88,7 +68,7 @@ public class show_info extends Activity {
             @Override
             public void onClick(View v) {
                 // Создаем намерение для перехода в MainActivity
-                Intent intent = new Intent(show_info.this, MainActivity.class);
+                Intent intent = new Intent(ShowInfo.this, MainActivity.class);
                 // Запускаем активити MainActivity
                 startActivity(intent);
             }
@@ -298,53 +278,89 @@ public class show_info extends Activity {
         listData.clear();
         final String finalSelectedDatabase = selectedDatabase;
         db.collection(selectedDatabase)
-                .get()
-                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                    @Override
-                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                        Log.d(TAG, "fetchDataAndUpdateList(): Data fetching successful");
-                        for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
-                            String barcode = documentSnapshot.getString("barcode");
-                            String itemName = documentSnapshot.getString("item_name");
-                            String quantity = documentSnapshot.getString("item_quantity");
-                            String expirationDate = documentSnapshot.getString("expiration_date");
-                            String idNumber = documentSnapshot.getString("id_number");
-                            String commentText = documentSnapshot.getString("comment_text");
+            .get()
+            .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                @Override
+                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                    Log.d(TAG, "fetchDataAndUpdateList(): Data fetching successful");
+                    for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
+                        String barcode = documentSnapshot.getString("barcode");
+                        String itemName = documentSnapshot.getString("item_name");
+                        String quantity = documentSnapshot.getString("item_quantity");
+                        String expirationDate = documentSnapshot.getString("expiration_date");
+                        String idNumber = documentSnapshot.getString("id_number");
+                        String commentText = documentSnapshot.getString("comment_text");
 
-                            try {
-                                SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy");
-                                Date expirationDateObj = format.parse(expirationDate);
+                        try {
+                            SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy");
+                            Date expirationDateObj = format.parse(expirationDate);
 
-                                DataModel dataModel = new DataModel(idNumber, barcode, itemName, quantity, expirationDate, commentText);
+                            DataModel dataModel = new DataModel(idNumber, barcode, itemName, quantity, expirationDate, commentText);
 
-                                listData.add(new Pair<>(expirationDateObj, dataModel));
-                            } catch (ParseException e) {
-                                e.printStackTrace();
-                            }
-                        }
-
-                        Collections.sort(listData, new Comparator<Pair<Date, DataModel>>() {
-                            @Override
-                            public int compare(Pair<Date, DataModel> o1, Pair<Date, DataModel> o2) {
-                                return o1.first.compareTo(o2.first);
-                            }
-                        });
-
-                        adapter.clear();
-
-                        for (Pair<Date, DataModel> pair : listData) {
-                            DataModel dataModel = pair.second;
-                            String item = "Код товара: " + dataModel.getBarcode() + "\n"
-                                    + "Название: " + dataModel.getItem_name() + "\n"
-                                    + "Количество: " + dataModel.getItem_quantity() + "\n"
-                                    + "Дата окончания срока: " + dataModel.getExpiration_date() + "\n"
-                                    + "Комментарий: " + dataModel.getComment_text()+ "\n"
-                                    + " ";
-
-                            adapter.add(item);
+                            listData.add(new Pair<>(expirationDateObj, dataModel));
+                        } catch (ParseException e) {
+                            e.printStackTrace();
                         }
                     }
-                });
+
+                    Collections.sort(listData, new Comparator<Pair<Date, DataModel>>() {
+                        @Override
+                        public int compare(Pair<Date, DataModel> o1, Pair<Date, DataModel> o2) {
+                            return o1.first.compareTo(o2.first);
+                        }
+                    });
+
+                    adapter.clear();
+
+                    for (Pair<Date, DataModel> pair : listData) {
+                        DataModel dataModel = pair.second;
+                        String item = "Код товара: " + dataModel.getBarcode() + "\n"
+                                + "Название: " + dataModel.getItem_name() + "\n"
+                                + "Количество: " + dataModel.getItem_quantity() + "\n"
+                                + "Дата окончания срока: " + dataModel.getExpiration_date() + "\n"
+                                + "Комментарий: " + dataModel.getComment_text()+ "\n"
+                                + " ";
+
+                        adapter.add(item);
+                    }
+                }
+            });
+    }
+
+    private void deleteSelectedUid(String selectedId){
+        db.collection(selectedDatabase).document(selectedId)
+            .delete()
+            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    Log.d(TAG, "DocumentSnapshot successfully deleted!");
+                }
+            })
+            .addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.w(TAG, "Error deleting document", e);
+                }
+            });
+    }
+
+    interface OptionSelectedListener {
+        void onOptionSelected(int option);
+    }
+
+    private void showOptionsDialog(final OptionSelectedListener listener) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Выберите действие");
+
+        builder.setItems(new CharSequence[]{"Удалить", "Редактировать"}, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (listener != null) {
+                    listener.onOptionSelected(which);
+                }
+            }
+        });
+        builder.create().show();
     }
 
     private void init() {
@@ -357,7 +373,34 @@ public class show_info extends Activity {
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                showOptionsDialog(position); // Показываем всплывающее окно с опциями при долгом нажатии
+                // Показываем всплывающее окно с опциями при долгом нажатии
+                showOptionsDialog(new OptionSelectedListener() {
+                    @Override
+                    public void onOptionSelected(int option) {
+                        DataModel answerModel = listData.get(position).second;
+                        // needed fields for processing
+                        String editedBarcode = answerModel.getBarcode();
+                        String editedItemName = answerModel.getItem_name();
+                        String editedExpirationDate = answerModel.getExpiration_date();
+                        // made document ID in firebase
+                        String selectedUid = editedBarcode + "-" + editedExpirationDate;
+                        switch (option){
+                            case 0:
+                                deleteSelectedUid(selectedUid);
+                                fetchDataAndUpdateList();
+                                break;
+                            case 1:
+                                String[] editDataArray = {editedBarcode, editedItemName,
+                                                          editedExpirationDate};
+                                Intent editIntent = new Intent(ShowInfo.this, MainActivity.class);
+                                editIntent.putExtra("selectedToEditUid", editDataArray);
+                                deleteSelectedUid(selectedUid);
+                                // Запускаем активити MainActivity
+                                startActivity(editIntent);
+                                break;
+                        }
+                    }
+                });
                 return true; // Указываем, что событие было обработано
             }
         });

@@ -12,9 +12,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -103,6 +108,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initializeUI() {
+
+        SharedPreferences preferences = getSharedPreferences("com.example.prosrok", Context.MODE_PRIVATE);
+        String selectedDatabase = preferences.getString("selectedDatabase", "");
+        if (!selectedDatabase.isEmpty()) {
+            dbCollection = db.collection(selectedDatabase);
+        } else {
+            // Обработка ошибки, если база данных не была выбрана
+            Log.e("MainActivity", "База данных не выбрана");
+        }
         editTextText6 = findViewById(R.id.editTextText6);
         editTextText2 = findViewById(R.id.editTextText2);
         editTextText3 = findViewById(R.id.editTextText3);
@@ -210,7 +224,20 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // waiting of item editing
+        String[] selectedToEditUid;
+        selectedToEditUid = getIntent().getStringArrayExtra("selectedToEditUid");
+        if (selectedToEditUid != null) {
+            // fields to fill
+            String resultArtikelnummer = selectedToEditUid[0];
+            String resultBeschreibung = selectedToEditUid[1];
+            String expirationDate = selectedToEditUid[2];
 
+            // fields filling
+            editTextText2.setText(resultBeschreibung);
+            editTextText6.setText(resultArtikelnummer);
+            editTextText4.setText(expirationDate);
+        }
     }
 
     private void startScanActivity() {
@@ -321,7 +348,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void show_data(View v) {
-        Intent intent = new Intent(this, show_info.class);
+        Intent intent = new Intent(this, ShowInfo.class);
         intent.putExtra("jsonArray", jsonArray.toString());
         startActivity(intent);
     }
@@ -451,6 +478,12 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+//    private void onEditingResult(String selectedUid) {
+//        if(getIntent().getStringArrayExtra("selectedToEditUid") != null)
+//        // Implement your logic here to handle the selectedUid
+//        Log.d("MainActivity", "Selected UID: " + selectedUid);
+//    }
 
     private boolean isDatabaseSelected() {
         SharedPreferences preferences = getSharedPreferences("com.example.prosrok", Context.MODE_PRIVATE);
