@@ -13,13 +13,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -39,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
 
     private EditText editTextText6, editTextText2, editTextText3, editTextText4, editTextText5;
     private JSONArray jsonArray;
-    private Button btn_scan;
+    private Button btnScan;
     private FirebaseFirestore db;
     private CollectionReference dbCollection;
 
@@ -123,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
         editTextText4 = findViewById(R.id.editTextText4);
         editTextText5 = findViewById(R.id.editTextText5);
         Button button = findViewById(R.id.button);
-        btn_scan = findViewById(R.id.btn_scan);
+        btnScan = findViewById(R.id.btn_scan);
 
         removeExpiredItemsFromFirestore();
 
@@ -168,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        btn_scan.setOnClickListener(new View.OnClickListener() {
+        btnScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startScanActivity();
@@ -478,12 +475,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
-//    private void onEditingResult(String selectedUid) {
-//        if(getIntent().getStringArrayExtra("selectedToEditUid") != null)
-//        // Implement your logic here to handle the selectedUid
-//        Log.d("MainActivity", "Selected UID: " + selectedUid);
-//    }
 
     private boolean isDatabaseSelected() {
         SharedPreferences preferences = getSharedPreferences("com.example.prosrok", Context.MODE_PRIVATE);
