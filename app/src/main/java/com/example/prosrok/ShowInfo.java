@@ -276,7 +276,6 @@ public class ShowInfo extends Activity {
     private void fetchDataAndUpdateList() {
         Log.d(TAG, "fetchDataAndUpdateList(): Started fetching data...");
         listData.clear();
-        final String finalSelectedDatabase = selectedDatabase;
         db.collection(selectedDatabase)
             .get()
             .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
@@ -303,7 +302,7 @@ public class ShowInfo extends Activity {
                         }
                     }
 
-                    Collections.sort(listData, new Comparator<Pair<Date, DataModel>>() {
+                    listData.sort(new Comparator<Pair<Date, DataModel>>() {
                         @Override
                         public int compare(Pair<Date, DataModel> o1, Pair<Date, DataModel> o2) {
                             return o1.first.compareTo(o2.first);
